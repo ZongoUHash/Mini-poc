@@ -9,10 +9,7 @@
             <h1 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">Pilotage des pointages</h1>
             <p class="mt-3 max-w-2xl text-slate-400">Générez un QR temporaire, affichez-le aux salariés et suivez les présences enregistrées avec leur position et leur précision GPS.</p>
         </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-300">
-            <span class="block text-xs font-semibold tracking-wide text-slate-500">AUJOURD’HUI</span>
-            <strong class="text-lg text-white">{{ now()->translatedFormat('l d F Y') }}</strong>
-        </div>
+        <div class="flex flex-col gap-3 sm:items-end"><a href="{{ route('attendance.board') }}" target="_blank" rel="noopener" class="w-full rounded-xl border border-blue-400/40 bg-blue-500/10 px-4 py-2.5 text-center text-sm font-semibold text-blue-100 transition hover:bg-blue-500/20 sm:w-auto">Ouvrir l’affichage public des QR ↗</a><div class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-300 sm:w-auto"><span class="block text-xs font-semibold tracking-wide text-slate-500">AUJOURD’HUI</span><strong class="text-lg text-white">{{ now()->translatedFormat('l d F Y') }}</strong></div></div>
     </section>
 
     @if(session('status'))

@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\EmployeePortalController;
 use App\Http\Controllers\HrDashboardController;
+use App\Http\Controllers\PublicAttendanceBoardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,6 +14,9 @@ Route::get('/', function () {
 
     return to_route(auth()->user()->role === 'hr' ? 'hr.dashboard' : 'employee.portal');
 });
+
+Route::get('/affichage-pointage', [PublicAttendanceBoardController::class, 'index'])->name('attendance.board');
+Route::get('/affichage-pointage/sessions', [PublicAttendanceBoardController::class, 'sessions'])->name('attendance.board.sessions');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/connexion', [AuthenticatedSessionController::class, 'create'])->name('login');

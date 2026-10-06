@@ -8,3 +8,17 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+body.app-loading {
+    overflow: hidden;
+}
+
+body.app-loading > header,
+body.app-loading > main {
+    visibility: hidden;
+}
+
+body:not(.app-loading) #app-loader {
+    pointer-events: none;
+    opacity: 0;
+}

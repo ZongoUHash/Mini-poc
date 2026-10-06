@@ -114,3 +114,52 @@ if (scanButton && scanStatus) {
         }
     });
 }
+
+const attendanceBoard = document.querySelector('#attendance-board');
+
+if (attendanceBoard) {
+    const refreshBoard = () => window.location.reload();
+    const updateCountdowns = () => {
+        let nextExpiration = null;
+
+        document.querySelectorAll('[data-board-session]').forEach((session) => {
+            const expiresAt = new Date(session.dataset.expiresAt).getTime();
+            const secondsRemaining = Math.ceil((expiresAt - Date.now()) / 1000);
+            const countdown = session.querySelector('[data-countdown]');
+
+            if (secondsRemaining <= 0) {
+                session.remove();
+                refreshBoard();
+                return;
+            }
+
+            if (countdown) {
+                const minutes = Math.floor(secondsRemaining / 60);
+                const seconds = String(secondsRemaining % 60).padStart(2, '0');
+                countdown.textContent = `${minutes}:${seconds}`;
+            }
+
+            nextExpiration = nextExpiration === null ? secondsRemaining : Math.min(nextExpiration, secondsRemaining);
+        });
+
+        if (nextExpiration !== null) {
+            window.setTimeout(refreshBoard, (nextExpiration * 1000) + 250);
+        }
+    };
+
+    updateCountdowns();
+    window.setInterval(updateCountdowns, 1000);
+
+    window.setInterval(async () => {
+        try {
+            const response = await fetch(attendanceBoard.dataset.boardStatusUrl, { headers: { Accept: 'application/json' } });
+            const board = await response.json();
+
+            if (board.signature !== attendanceBoard.dataset.boardSignature) {
+                refreshBoard();
+            }
+        } catch {
+            // The display remains usable with its current QR if the connection is briefly unavailable.
+        }
+    }, 5000);
+}
