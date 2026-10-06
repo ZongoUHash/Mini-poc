@@ -2,6 +2,7 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source inline("bg-emerald-400 bg-emerald-400/10 text-emerald-300 border-emerald-400/30 focus:border-emerald-400 bg-amber-400 bg-amber-400/10 text-amber-300 border-amber-400/30 focus:border-amber-400");
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',

@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
@@ -12,7 +13,7 @@ class Employee extends Model
     /** @use HasFactory<EmployeeFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'email', 'is_active'];
+    protected $fillable = ['user_id', 'name', 'email', 'is_active'];
 
     protected function casts(): array
     {
@@ -22,5 +23,10 @@ class Employee extends Model
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

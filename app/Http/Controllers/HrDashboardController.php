@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
+use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -25,7 +26,11 @@ class HrDashboardController extends Controller
             ->latest('pointed_at')
             ->get();
 
-        return view('hr.dashboard', compact('sessions', 'records'));
+        return view('hr.dashboard', [
+            'sessions' => $sessions,
+            'records' => $records,
+            'activeEmployeesCount' => Employee::query()->where('is_active', true)->count(),
+        ]);
     }
 
     public function createSession(Request $request): RedirectResponse
@@ -49,5 +54,14 @@ class HrDashboardController extends Controller
         ]);
 
         return to_route('hr.dashboard')->with('generated_session', $session->token);
+    }
+
+    public function closeSession(AttendanceSession $attendanceSession): RedirectResponse
+    {
+        if ($attendanceSession->closed_at === null) {
+            $attendanceSession->update(['closed_at' => now()]);
+        }
+
+        return to_route('hr.dashboard')->with('status', 'Le QR code a été désactivé.');
     }
 }

@@ -14,15 +14,15 @@ class AttendanceController extends Controller
     {
         return view('employee.scan', [
             'attendanceSession' => AttendanceSession::query()->where('token', $token)->first(),
-            'employeeId' => (int) $request->session()->get('employee_id'),
+            'employee' => $request->user()->employee,
         ]);
     }
 
     public function point(Request $request, string $token): JsonResponse
     {
-        $employeeId = (int) $request->session()->get('employee_id');
-        if ($employeeId <= 0) {
-            return response()->json(['message' => 'Sélectionnez d’abord le salarié de démonstration.'], 401);
+        $employee = $request->user()->employee;
+        if ($employee === null || ! $employee->is_active) {
+            return response()->json(['message' => 'Votre compte salarié n’est pas actif.'], 403);
         }
 
         $attendanceSession = AttendanceSession::query()->where('token', $token)->first();
@@ -37,7 +37,7 @@ class AttendanceController extends Controller
         ]);
 
         $alreadyPointed = AttendanceRecord::query()
-            ->where('employee_id', $employeeId)
+            ->where('employee_id', $employee->id)
             ->where('attendance_session_id', $attendanceSession->id)
             ->exists();
         if ($alreadyPointed) {
@@ -46,7 +46,7 @@ class AttendanceController extends Controller
 
         if ($attendanceSession->type === 'departure') {
             $hasArrival = AttendanceRecord::query()
-                ->where('employee_id', $employeeId)
+                ->where('employee_id', $employee->id)
                 ->where('type', 'arrival')
                 ->whereDate('pointed_at', today())
                 ->exists();
@@ -56,7 +56,7 @@ class AttendanceController extends Controller
         }
 
         AttendanceRecord::create([
-            'employee_id' => $employeeId,
+            'employee_id' => $employee->id,
             'attendance_session_id' => $attendanceSession->id,
             'type' => $attendanceSession->type,
             'latitude' => $validated['latitude'],

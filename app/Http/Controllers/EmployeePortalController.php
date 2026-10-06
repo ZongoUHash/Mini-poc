@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -11,26 +10,16 @@ class EmployeePortalController extends Controller
 {
     public function index(Request $request): View
     {
+        /** @var Employee $employee */
+        $employee = $request->user()->employee;
+
         return view('employee.portal', [
-            'employees' => Employee::query()->where('is_active', true)->orderBy('name')->get(),
-            'currentEmployee' => $request->session()->has('employee_id')
-                ? Employee::find((int) $request->session()->get('employee_id'))
-                : null,
+            'employee' => $employee,
+            'todayRecords' => $employee->attendanceRecords()
+                ->with('attendanceSession')
+                ->whereDate('pointed_at', today())
+                ->latest('pointed_at')
+                ->get(),
         ]);
-    }
-
-    public function reset(Request $request): RedirectResponse
-    {
-        $request->session()->forget('employee_id');
-
-        return to_route('employee.portal');
-    }
-
-    public function select(Request $request): RedirectResponse
-    {
-        $validated = $request->validate(['employee_id' => ['required', 'exists:employees,id']]);
-        $request->session()->put('employee_id', (int) $validated['employee_id']);
-
-        return to_route('employee.portal');
     }
 }
