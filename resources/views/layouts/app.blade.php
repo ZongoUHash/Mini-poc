@@ -8,6 +8,7 @@
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.svg') }}">
     <title>@yield('title', 'Pointage QR') · POC</title>
+    <style>html { background: #020617; } body { margin: 0; background: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; } a { color: inherit; }</style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
