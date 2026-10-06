@@ -17,7 +17,7 @@ class HrAttendanceManagementTest extends TestCase
         $previousSession = AttendanceSession::factory()->create(['type' => 'arrival', 'expires_at' => now()->addMinutes(10)]);
 
         $this->actingAs($hr)
-            ->post(route('hr.sessions.create'), ['type' => 'arrival', 'validity_value' => 5, 'duration_unit' => 'minutes'])
+            ->post(route('hr.sessions.create'), ['type' => 'arrival', 'validity_value' => '5', 'duration_unit' => 'minutes'])
             ->assertRedirect(route('hr.dashboard'));
 
         $this->assertNotNull($previousSession->fresh()->closed_at);

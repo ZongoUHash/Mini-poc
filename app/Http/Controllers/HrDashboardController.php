@@ -41,9 +41,10 @@ class HrDashboardController extends Controller
             'duration_unit' => ['required', 'in:minutes,hours'],
         ]);
 
+        $validityValue = (int) $validated['validity_value'];
         $validityMinutes = $validated['duration_unit'] === 'hours'
-            ? $validated['validity_value'] * 60
-            : $validated['validity_value'];
+            ? $validityValue * 60
+            : $validityValue;
 
         if ($validityMinutes > 1440) {
             return back()
