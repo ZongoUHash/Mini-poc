@@ -70,8 +70,8 @@ if (pointButton && pointStatus) {
             return;
         }
 
-        const targetAccuracy = 20;
-        const maximumSearchTime = 12000;
+        const targetAccuracy = 10;
+        const maximumSearchTime = 30000;
         let bestPosition = null;
         let isPointing = false;
         let locationWatchId;
@@ -109,7 +109,7 @@ if (pointButton && pointStatus) {
         };
 
         pointButton.disabled = true;
-        setStatus('Recherche de votre position la plus précise. Restez quelques instants près d’une fenêtre ou à l’extérieur…', 'text-blue-200');
+        setStatus('Recherche d’une position précise à 10 m ou moins. Restez près d’une fenêtre ou à l’extérieur…', 'text-blue-200');
 
         locationWatchId = navigator.geolocation.watchPosition((position) => {
             if (!bestPosition || position.coords.accuracy < bestPosition.coords.accuracy) {
@@ -122,7 +122,7 @@ if (pointButton && pointStatus) {
                 return;
             }
 
-            setStatus(`Amélioration de la précision GPS en cours : ± ${accuracy} m. Patientez encore un instant…`, 'text-blue-200');
+            setStatus(`Précision actuelle : ± ${accuracy} m. Le pointage sera validé dès que la précision atteint 10 m ou moins…`, 'text-blue-200');
         }, (error) => {
             window.clearTimeout(precisionTimer);
             navigator.geolocation.clearWatch(locationWatchId);
@@ -132,7 +132,10 @@ if (pointButton && pointStatus) {
 
         precisionTimer = window.setTimeout(() => {
             if (bestPosition) {
-                submitPointing();
+                const accuracy = Math.round(bestPosition.coords.accuracy);
+                navigator.geolocation.clearWatch(locationWatchId);
+                setStatus(`Précision insuffisante : ± ${accuracy} m. Le pointage n’a pas été enregistré. Activez le GPS haute précision, rapprochez-vous d’une fenêtre ou allez à l’extérieur, puis réessayez.`, 'text-red-300');
+                pointButton.disabled = false;
                 return;
             }
 
