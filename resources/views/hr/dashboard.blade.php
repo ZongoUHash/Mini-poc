@@ -24,14 +24,14 @@
 
     <section class="mt-8 grid gap-5 lg:grid-cols-2">
         @foreach (['arrival' => ['Arrivée', 'emerald', 'd’arrivée'], 'departure' => ['Départ', 'amber', 'de départ']] as $type => [$label, $color, $article])
-            <form method="POST" action="{{ route('hr.sessions.create') }}" class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-black/10">
+            <form method="POST" action="{{ route('hr.sessions.create') }}" data-loading-form data-loading-label="Génération du QR…" class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-black/10">
                 @csrf
                 <input type="hidden" name="type" value="{{ $type }}">
                 <div class="flex items-start justify-between gap-4"><div><p class="text-sm font-semibold text-{{ $color }}-400">QR {{ strtoupper($label) }}</p><h2 class="mt-1 text-xl font-bold text-white">Générer le QR {{ $article }}</h2></div><span class="grid size-10 place-items-center rounded-xl bg-{{ $color }}-400/10 text-{{ $color }}-300">{{ $type === 'arrival' ? '↗' : '↘' }}</span></div>
-                <label class="mt-6 block text-sm font-medium text-slate-200" for="{{ $type }}_validity">Durée de validité</label>
-                <select id="{{ $type }}_validity" name="validity_minutes" class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-white outline-none transition focus:border-{{ $color }}-400">
-                    <option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option>
-                </select>
+                <label class="mt-6 block text-sm font-medium text-slate-200" for="{{ $type }}_validity_value">Durée de validité</label>
+                <div class="mt-2 grid grid-cols-[1fr_auto] gap-2"><input id="{{ $type }}_validity_value" name="validity_value" type="number" min="1" max="1440" value="{{ old('validity_value', 5) }}" required class="min-w-0 rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-white outline-none transition focus:border-{{ $color }}-400" aria-describedby="{{ $type }}_duration_help"><select name="duration_unit" class="rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-white outline-none transition focus:border-{{ $color }}-400"><option value="minutes" @selected(old('duration_unit', 'minutes') === 'minutes')>minutes</option><option value="hours" @selected(old('duration_unit') === 'hours')>heures</option></select></div>
+                <p id="{{ $type }}_duration_help" class="mt-2 text-xs text-slate-500">Choisissez la durée souhaitée, jusqu’à 24 heures.</p>
+                @error('validity_value')<p class="mt-2 text-sm text-red-300">{{ $message }}</p>@enderror
                 <button class="mt-5 w-full rounded-xl bg-{{ $color }}-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-{{ $color }}-300">Générer et afficher le QR</button>
             </form>
         @endforeach
@@ -43,7 +43,7 @@
             @forelse($sessions as $attendanceSession)
                 <article class="rounded-2xl border {{ $attendanceSession->type === 'arrival' ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-amber-400/30 bg-amber-400/5' }} p-6">
                     <div class="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
-                        <div><p class="text-sm font-semibold {{ $attendanceSession->type === 'arrival' ? 'text-emerald-300' : 'text-amber-300' }}">QR {{ $attendanceSession->type === 'arrival' ? 'D’ARRIVÉE' : 'DE DÉPART' }} ACTIF</p><h3 class="mt-1 text-xl font-bold text-white">À afficher aux salariés</h3><p class="mt-2 text-sm text-slate-300">Expire à <strong>{{ $attendanceSession->expires_at->format('H:i:s') }}</strong>. Les salariés connectés le scannent depuis leur espace.</p><p class="mt-3 break-all text-xs text-slate-500">{{ route('attendance.scan', $attendanceSession->token) }}</p><form class="mt-4" method="POST" action="{{ route('hr.sessions.close', $attendanceSession) }}">@csrf @method('DELETE')<button class="text-sm font-medium text-slate-300 underline decoration-slate-600 underline-offset-4 hover:text-white">Désactiver ce QR</button></form></div>
+                        <div><p class="text-sm font-semibold {{ $attendanceSession->type === 'arrival' ? 'text-emerald-300' : 'text-amber-300' }}">QR {{ $attendanceSession->type === 'arrival' ? 'D’ARRIVÉE' : 'DE DÉPART' }} ACTIF</p><h3 class="mt-1 text-xl font-bold text-white">À afficher aux salariés</h3><p class="mt-2 text-sm text-slate-300">Expire à <strong>{{ $attendanceSession->expires_at->format('H:i:s') }}</strong>. Les salariés connectés le scannent depuis leur espace.</p><p class="mt-3 break-all text-xs text-slate-500">{{ route('attendance.scan', $attendanceSession->token) }}</p><form class="mt-4" method="POST" action="{{ route('hr.sessions.close', $attendanceSession) }}" data-loading-form data-loading-label="Désactivation…">@csrf @method('DELETE')<button class="text-sm font-medium text-slate-300 underline decoration-slate-600 underline-offset-4 hover:text-white">Désactiver ce QR</button></form></div>
                         <div class="justify-self-center rounded-2xl bg-white p-3 shadow-lg"><canvas class="qr-code" data-qr-value="{{ route('attendance.scan', $attendanceSession->token) }}"></canvas></div>
                     </div>
                 </article>

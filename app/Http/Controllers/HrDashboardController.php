@@ -37,8 +37,19 @@ class HrDashboardController extends Controller
     {
         $validated = $request->validate([
             'type' => ['required', 'in:arrival,departure'],
-            'validity_minutes' => ['required', 'integer', 'min:1', 'max:60'],
+            'validity_value' => ['required', 'integer', 'min:1', 'max:1440'],
+            'duration_unit' => ['required', 'in:minutes,hours'],
         ]);
+
+        $validityMinutes = $validated['duration_unit'] === 'hours'
+            ? $validated['validity_value'] * 60
+            : $validated['validity_value'];
+
+        if ($validityMinutes > 1440) {
+            return back()
+                ->withErrors(['validity_value' => 'La durée maximale autorisée est de 24 heures.'])
+                ->withInput();
+        }
 
         AttendanceSession::query()
             ->where('type', $validated['type'])
@@ -50,7 +61,7 @@ class HrDashboardController extends Controller
             'token' => Str::random(48),
             'type' => $validated['type'],
             'starts_at' => now(),
-            'expires_at' => now()->addMinutes((int) $validated['validity_minutes']),
+            'expires_at' => now()->addMinutes($validityMinutes),
         ]);
 
         return to_route('hr.dashboard')->with('generated_session', $session->token);

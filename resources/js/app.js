@@ -9,6 +9,20 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
 }
 
+document.querySelectorAll('[data-loading-form]').forEach((form) => {
+    form.addEventListener('submit', () => {
+        const submitButton = form.querySelector('button[type="submit"], button:not([type])');
+
+        if (!submitButton || submitButton.disabled) {
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.dataset.initialLabel = submitButton.textContent;
+        submitButton.textContent = form.dataset.loadingLabel || 'Traitement en cours…';
+    });
+});
+
 const installButton = document.querySelector('#install-app-button');
 const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
@@ -56,29 +70,76 @@ if (pointButton && pointStatus) {
             return;
         }
 
-        pointButton.disabled = true;
-        pointStatus.textContent = 'Localisation en cours…';
-        navigator.geolocation.getCurrentPosition(async (position) => {
+        const targetAccuracy = 20;
+        const maximumSearchTime = 12000;
+        let bestPosition = null;
+        let isPointing = false;
+        let locationWatchId;
+        let precisionTimer;
+
+        const setStatus = (message, color = 'text-slate-400') => {
+            pointStatus.textContent = message;
+            pointStatus.className = `mt-4 text-center text-sm ${color}`;
+        };
+
+        const submitPointing = async () => {
+            if (!bestPosition || isPointing) {
+                return;
+            }
+
+            isPointing = true;
+            navigator.geolocation.clearWatch(locationWatchId);
+            window.clearTimeout(precisionTimer);
+            const accuracy = Math.round(bestPosition.coords.accuracy);
+            setStatus(`Position obtenue avec une précision de ± ${accuracy} m. Enregistrement du pointage…`, 'text-blue-200');
+
             try {
                 const response = await fetch(pointButton.dataset.pointUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-                    body: JSON.stringify({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy_meters: position.coords.accuracy }),
+                    body: JSON.stringify({ latitude: bestPosition.coords.latitude, longitude: bestPosition.coords.longitude, accuracy_meters: bestPosition.coords.accuracy }),
                 });
                 const body = await response.json();
-                pointStatus.textContent = body.message;
-                pointStatus.className = `mt-4 text-center text-sm ${response.ok ? 'text-emerald-300' : 'text-red-300'}`;
+                setStatus(body.message, response.ok ? 'text-emerald-300' : 'text-red-300');
                 if (!response.ok) pointButton.disabled = false;
             } catch {
-                pointStatus.textContent = 'Connexion impossible. Réessayez.';
-                pointStatus.className = 'mt-4 text-center text-sm text-red-300';
+                setStatus('Connexion impossible. Réessayez.', 'text-red-300');
                 pointButton.disabled = false;
             }
+        };
+
+        pointButton.disabled = true;
+        setStatus('Recherche de votre position la plus précise. Restez quelques instants près d’une fenêtre ou à l’extérieur…', 'text-blue-200');
+
+        locationWatchId = navigator.geolocation.watchPosition((position) => {
+            if (!bestPosition || position.coords.accuracy < bestPosition.coords.accuracy) {
+                bestPosition = position;
+            }
+
+            const accuracy = Math.round(bestPosition.coords.accuracy);
+            if (accuracy <= targetAccuracy) {
+                submitPointing();
+                return;
+            }
+
+            setStatus(`Amélioration de la précision GPS en cours : ± ${accuracy} m. Patientez encore un instant…`, 'text-blue-200');
         }, (error) => {
-            pointStatus.textContent = error.code === 1 ? 'La position doit être autorisée pour pointer.' : 'Position indisponible. Réessayez.';
-            pointStatus.className = 'mt-4 text-center text-sm text-red-300';
+            window.clearTimeout(precisionTimer);
+            navigator.geolocation.clearWatch(locationWatchId);
+            setStatus(error.code === 1 ? 'La position doit être autorisée pour pointer.' : 'Position indisponible. Vérifiez le GPS puis réessayez.', 'text-red-300');
             pointButton.disabled = false;
-        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        }, { enableHighAccuracy: true, timeout: maximumSearchTime, maximumAge: 0 });
+
+        precisionTimer = window.setTimeout(() => {
+            if (bestPosition) {
+                submitPointing();
+                return;
+            }
+
+            navigator.geolocation.clearWatch(locationWatchId);
+            setStatus('La position n’a pas pu être déterminée. Vérifiez le GPS puis réessayez.', 'text-red-300');
+            pointButton.disabled = false;
+        }, maximumSearchTime);
     });
 }
 

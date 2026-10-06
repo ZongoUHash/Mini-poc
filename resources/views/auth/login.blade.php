@@ -15,7 +15,7 @@
             <p class="text-sm font-semibold text-blue-300">CONNEXION</p>
             <h2 class="mt-2 text-2xl font-bold text-white">Accéder à votre espace</h2>
             <p class="mt-2 text-sm leading-6 text-slate-400">Utilisez un compte de démonstration RH ou salarié.</p>
-            <form method="POST" action="{{ route('login.store') }}" class="mt-7 space-y-5">@csrf
+            <form method="POST" action="{{ route('login.store') }}" data-loading-form data-loading-label="Connexion…" class="mt-7 space-y-5">@csrf
                 <div><label for="email" class="text-sm font-medium text-slate-200">Adresse e-mail</label><input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required autofocus class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-blue-400" placeholder="nom@pointage-poc.test">@error('email')<p class="mt-2 text-sm text-red-300">{{ $message }}</p>@enderror</div>
                 <div><label for="password" class="text-sm font-medium text-slate-200">Mot de passe</label><input id="password" name="password" type="password" autocomplete="current-password" required class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition focus:border-blue-400"></div>
                 <label class="flex items-center gap-2 text-sm text-slate-400"><input type="checkbox" name="remember" value="1" class="rounded border-slate-600 bg-slate-800 text-blue-500"> Rester connecté sur cet appareil</label>
