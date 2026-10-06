@@ -2,13 +2,10 @@ FROM composer:2 AS dependencies
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
-
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
-
 COPY . ./
 
-RUN composer dump-autoload --no-dev --classmap-authoritative
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader \
+    && composer dump-autoload --no-dev --classmap-authoritative
 
 FROM node:22-alpine AS assets
 
